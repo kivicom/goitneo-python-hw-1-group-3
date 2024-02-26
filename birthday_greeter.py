@@ -1,44 +1,59 @@
 """
-Module for identifying colleagues who need to be greeted with a birthday in the coming week.
+Module for identifying colleagues who should be greeted with their birthdays in the upcoming week.
 
-This module contains the function get_birthday_greetings, which checks the list of colleagues
-and determines whose birthdays fall on the next week from the current date.
+This module includes a function that checks a list of users with their names and birthdays,
+determines whose birthdays fall into the next week, 
+and prints a list of these users organized by the day of the week.
 """
 
 from datetime import datetime, timedelta
+from collections import defaultdict
 
-def get_birthday_greetings(colleagues_list):
+def get_birthdays_per_week(users_list):
     """
-    Determines colleagues who should be greeted with a birthday in the coming week.
+    Prints a list of users to be greeted with their birthdays in the upcoming week.
+
+    Args:
+    - users (list): A list of dictionaries, each containing 'name' and 'birthday' of a user.
+                    'birthday' should be a datetime object.
     
-    Parameters:
-    - colleagues_list (list): A list of dictionaries, where each dictionary contains a colleague's
-      name and their birthday in the format "YYYY-MM-DD".
-    
-    Returns:
-    - list: A list of names of colleagues whose birthdays fall in the next week.
+    The function calculates which users have their birthdays in the next week from today,
+    and prints their names grouped by the weekday of their birthday. 
+    If a birthday falls on a weekend, it's moved to Monday.
     """
+    today = datetime.now().date()  # Current date as a datetime.date object
+    one_week_ahead = today + timedelta(days=7)
+    birthdays = defaultdict(list)
 
-    today = datetime.now()
-    week_later = today + timedelta(days=7)
-    greetings_list = []
+    for user in users_list:
+        name = user["name"]
+        # Ensure birthday is a datetime.date object for comparison
+        birthday = user["birthday"].date()  # Use .date() for conversion
 
-    for colleague in colleagues_list:
-        birthday = datetime.strptime(colleague["birthday"], "%Y-%m-%d")
+         # Adjust the year of the birthday to this year for comparison
         birthday_this_year = birthday.replace(year=today.year)
 
-        if today <= birthday_this_year <= week_later:
-            greetings_list.append(colleague["name"])
+        # If this year's birthday has already passed, consider next year
+        if birthday_this_year < today:
+            birthday_this_year = birthday_this_year.replace(year=today.year + 1)
 
-    return greetings_list
+        # Compare with current date and date a week ahead
+        if today <= birthday_this_year <= one_week_ahead:
+            # Determine the weekday for the birthday
+            day_of_week = birthday_this_year.strftime("%A")
+            if birthday_this_year.weekday() >= 5:  # Moving weekends to Monday
+                day_of_week = "Monday"
+            birthdays[day_of_week].append(name)
 
-# Test colleagues
-colleagues = [
-    {"name": "Alice", "birthday": "1983-12-29"},
-    {"name": "Bob", "birthday": "1984-12-24"},
-    {"name": "Charlie", "birthday": "1985-01-02"},
-    {"name": "Igor", "birthday": "1985-03-02"},
+    # Printing the result
+    for day, names in birthdays.items():
+        print(f"{day}: {', '.join(names)}")
+
+# Example usage
+users = [
+    {"name": "Bill Gates", "birthday": datetime(1955, 10, 28)},
+    {"name": "Jan Koum", "birthday": datetime(1976, 2, 24)},
+    {"name": "Ivan Koum", "birthday": datetime(1984, 3, 3)},
 ]
 
-# Function call and output of the result
-print(get_birthday_greetings(colleagues))
+get_birthdays_per_week(users)
