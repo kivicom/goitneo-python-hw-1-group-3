@@ -6,39 +6,114 @@ This module demonstrates a simple implementation of a command-based interaction 
 handling predefined commands like greeting, help, and exit.
 """
 
-def handle_command(command):
+from collections import defaultdict
+
+def parse_input(user_input):
     """
-    Handles the entered commands and prints corresponding messages.
-    
+    Parses the user input into a command and its arguments.
+
     Args:
-    - command (str): The command to handle.
-    
+        user_input (str): The full command input by the user.
+
     Returns:
-    - bool: True if the command is 'exit', indicating the program should terminate.
-            False otherwise, indicating the program should continue running.
+        tuple: A tuple where the first element is the command (str) 
+        and the rest are arguments (list).
     """
-    if command == "hello":
-        print("Hello! I'm your assistant bot. How can I assist you today?")
-    elif command == "help":
-        print("I can respond to the following commands:\n"
-              "- hello: greetings\n"
-              "- help: display this help message\n- exit: exit the program")
-    elif command == "exit":
-        print("Goodbye!")
-        return True
+    cmd, *args = user_input.split()
+    return cmd.lower(), args
+
+def add_contact(args, contacts):
+    """
+    Adds or updates a contact in the contact book.
+
+    Args:
+        args (list): List containing the name and phone number.
+        contacts (dict): The contact book dictionary.
+
+    Returns:
+        str: A confirmation message.
+    """
+    name, phone = args
+    contacts[name] = phone
+    return "Contact added."
+
+def change_contact(args, contacts):
+    """
+    Changes an existing contact's phone number.
+
+    Args:
+        args (list): List containing the name and the new phone number.
+        contacts (dict): The contact book dictionary.
+
+    Returns:
+        str: A confirmation message or an error message if the contact doesn't exist.
+    """
+    name, phone = args
+    if name in contacts:
+        contacts[name] = phone
+        return "Contact updated."
     else:
-        print("Sorry, I don't understand this command. Try 'help' for a list of commands.")
-    return False
+        return "Contact not found."
+
+def show_phone(args, contacts):
+    """
+    Shows the phone number of a specified contact.
+
+    Args:
+        args (list): List containing the name of the contact.
+        contacts (dict): The contact book dictionary.
+
+    Returns:
+        str: The contact's phone number or an error message if the contact doesn't exist.
+    """
+    name = args[0]
+    if name in contacts:
+        return contacts[name]
+    else:
+        return "Contact not found."
+
+def show_all(contacts):
+    """
+    Shows all contacts in the contact book.
+
+    Args:
+        contacts (dict): The contact book dictionary.
+
+    Returns:
+        str: A string representation of all contacts or a message if there are no contacts.
+    """
+    if contacts:
+        return "\n".join([f"{name}: {phone}" for name, phone in contacts.items()])
+    else:
+        return "No contacts found."
 
 def main():
     """
-    Main function to run the assistant bot.
+    The main function to run the assistant bot. It initializes the contact book and
+    processes commands until the user decides to exit.
     """
-    print("Welcome! I'm your assistant bot. Enter 'help' to see the list of commands.")
+    contacts = defaultdict(str)
+    print("Welcome to the assistant bot!")
+
     while True:
-        command = input("Enter a command: ").strip().lower()
-        if handle_command(command):
+        user_input = input("Enter a command: ")
+        command, args = parse_input(user_input)
+
+        if command in ["close", "exit"]:
+            print("Good bye!")
             break
+        elif command == "hello":
+            print("How can I help you?")
+        elif command == "add":
+            print(add_contact(args, contacts))
+        elif command == "change":
+            print(change_contact(args, contacts))
+        elif command == "phone":
+            print(show_phone(args, contacts))
+        elif command == "all":
+            print(show_all(contacts))
+        else:
+            print("Invalid command.")
 
 if __name__ == "__main__":
     main()
